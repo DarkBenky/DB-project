@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Item</title>
+</head>
+<body>
+    <h1>Edit Item</h1>
+    <form method="POST">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ item['name'] }}">
+        <br>
+        <label for="price">Price:</label>
+        <input type="text" id="price" name="price" value="{{ item['price'] }}">
+        <br>
+        <label for="quantity">Quantity:</label>
+        <input type="text" id="quantity" name="quantity" value="{{ item['quantity'] }}">
+        <br>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description">{{ item['description'] }}</textarea>
+        <br>
+        <label for="image">Image URL:</label>
+        <input type="text" id="image" name="image" value="{{ item['image'] }}">
+        <br>
+        <button type="submit">Save</button>
+    </form>
+    <a href="{{ url_for('index') }}">Back to My Items</a>
+</body>
+</html>

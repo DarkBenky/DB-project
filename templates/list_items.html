@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Items</title>
+</head>
+<body>
+    <h1>Items</h1>
+    <form method="GET" action="{{ url_for('list_items') }}">
+        <input type="text" name="search_query" placeholder="Search items">
+        <button type="submit">Search</button>
+    </form>
+    <form method="GET" action="{{ url_for('reset_search_offers')}}" >
+        <button type="submit">Reset Search</button>
+    </form>
+    <ul>
+        {% for item in items %}
+        <li>
+            {{ item['name'] }} - ${{ item['price'] }} - {{ item['quantity'] }} available
+            <br>{{ item['description'] }}
+            <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
+            <form method="POST" action="{{ url_for('buy_item', item_id=item['rowid']) }}">
+                <input type="hidden" name="item_id" value="{{ item['rowid'] }}">
+                <button type="submit">Buy</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('index') }}">Home</a>
+</body>
+</html>

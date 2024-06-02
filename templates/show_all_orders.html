@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orders</title>
+</head>
+<body>
+    <h1>Orders</h1>
+    <form method="GET" action="{{ url_for('show_all_orders') }}">
+        <input type="text" name="search_query" placeholder="Search items">
+        <button type="submit">Search</button>
+    </form>
+    <form method="GET" action="{{ url_for('show_all_orders_rerender')}}" >
+        <button type="submit">Reset Search</button>
+    </form>
+    <ul>
+        {% for item in orders %}
+        <li>
+            {{ item['name'] }} - ${{ item['price'] }}
+            <p>Seller : {{ item['seller_name'] }}</p>
+            <p>Buyer : {{ item['buyer_name'] }}</p>
+            <br>{{ item['description'] }}
+            <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('index') }}">Home</a>
+</body>
+</html>

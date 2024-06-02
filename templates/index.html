@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Marketplace</title>
+</head>
+
+<body>
+    {% if username == 'NaN' %}
+    <h1>Welcome to the Marketplace</h1>
+    <a href="{{ url_for('register') }}">Register</a>
+    <a href="{{ url_for('login') }}">Login</a>
+    <a href="{{ url_for('list_items') }}">View Items</a>
+    {% endif %}
+    {% if session.user_id %}
+    <div>
+        <h2>Welcome, {{ username }}</h2>
+        <p>Balance Amount: {{ balance }}</p>
+        <a href="{{ url_for('add_item') }}">Add Item</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        <a href="{{ url_for('show_all_orders')}}">Show All Orders</a>
+    </div>
+
+    <div>
+        {% if offers %}
+        <h2>Your offers</h2>
+        <form method="GET" action="{{ url_for('search_offers') }}">
+            <input type="text" name="search_query" placeholder="Search items">
+            <button type="submit">Search</button>
+        </form>
+        <form method="GET" action="{{ url_for('reset_search')}}" >
+            <button type="submit">Reset Search</button>
+        </form>
+
+            <ul>
+                {% for offer in offers %}
+                <li>
+                    Name : {{ offer['name'] }} Price : ${{ offer['price'] }}
+                    <br> Item description : {{ offer['description'] }}
+                    <br><img src="{{ offer['image'] }}" alt="{{ offer['name'] }}">
+                    <a href="{{ url_for('edit_item', item_id=offer['rowid']) }}">Edit</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+
+    <div>
+        {% if items %}
+        <form method="GET" action="{{ url_for('search_bought_items') }}">
+            <input type="text" name="search_query" placeholder="Search bought items">
+            <button type="submit">Search</button>
+        </form>
+        <form method="GET" action="{{ url_for('reset_search')}}" >
+            <button type="submit">Reset Search</button>
+        </form>
+
+        <h2>Your bought items</h2>
+        {% for item in items %}
+        <li>
+            Name : {{ item['name'] }} Price : ${{ item['price'] }}
+            <br> Item description : {{ item['description'] }}
+            <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
+
+        </li>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    <div>
+        <h2>Items</h2>
+        <a href="{{ url_for('list_items') }}">View Items</a>
+    </div>
+
+    {% endif %}
+</body>
+
+</html>
