@@ -36,8 +36,9 @@
             <ul>
                 {% for offer in offers %}
                 <li>
-                    Name : {{ offer['name'] }} Price : ${{ offer['price'] }}
-                    <br> Item description : {{ offer['description'] }}
+                    <p>Name : {{ offer['name'] }}</p>
+                    <p>Price : ${{ offer['price'] }}</p>
+                    <p>Item description : {{ offer['description'] }}</p>
                     <br><img src="{{ offer['image'] }}" alt="{{ offer['name'] }}">
                     <a href="{{ url_for('edit_item', item_id=offer['rowid']) }}">Edit</a>
                 </li>
@@ -59,10 +60,12 @@
         <h2>Your bought items</h2>
         {% for item in items %}
         <li>
-            Name : {{ item['name'] }} Price : ${{ item['price'] }}
-            <br> Item description : {{ item['description'] }}
+            <p>Name : {{ item['name'] }}</p>
+            <p>Price : ${{ item['price'] }}</p>
+            <p> Item description : {{ item['description'] }} </p>
+            <p>Time of parches : {{item['timestamp']}} </p>
             <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
-
+            <a href="{{ url_for('get_historical_price_for_item' , item_id=item['rowid'])}}"> Historical price</a>
         </li>
         {% endfor %}
         {% endif %}

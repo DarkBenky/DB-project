@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Price History</title>
+</head>
+<body>
+    <h1>Item Price History : {{ prices[0]['name']}}</h1>
+    <br><img src="{{ prices[0]['image'] }}" alt="{{ prices[0]['name'] }}">
+    <ul>
+        {% for item in prices %}
+        <li>
+            <p>Price : ${{ item['price'] }}</p>
+            <p>Date : {{ item['timestamp'] }}</p>
+            
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('index') }}">Home</a>
+</body>
+</html>

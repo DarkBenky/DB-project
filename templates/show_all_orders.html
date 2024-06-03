@@ -20,6 +20,7 @@
             <p>Seller : {{ item['seller_name'] }}</p>
             <p>Buyer : {{ item['buyer_name'] }}</p>
             <br>{{ item['description'] }}
+            <p>Time of Parches : {{ item['timestamp']}}</p>
             <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
         </li>
         {% endfor %}

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import create_tables
 import sqlite3
+import json
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -10,6 +11,16 @@ def get_db_connection():
     conn = sqlite3.connect('marketplace.db')
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def debag(query):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(query)
+    items = c.fetchall()
+    conn.close()
+    print(query , " : Query")
+    print(items)
 
 
 @app.route('/')
@@ -36,7 +47,14 @@ def get_username(user_id):
     except:
         return 'NaN'
 
-
+@app.route('/get_historical_price_for_item/<int:item_id>')
+def get_historical_price_for_item(item_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT * FROM orders WHERE item_id = ? ORDER BY timestamp DESC', (item_id,))
+    prices = c.fetchall()
+    conn.close()
+    return render_template('historical_prices.html', prices=prices)
 
 @app.route('/buy_item/<int:item_id>', methods=['POST'])
 def buy_item(item_id):
@@ -147,14 +165,6 @@ def add_item():
     
     return render_template('add_item.html')
 
-def debag(query):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(query)
-    items = c.fetchall()
-    conn.close()
-    print(items[0].keys())
-    print(items[0]['seller_name'])
 
 @app.route('/show_all_orders')
 def show_all_orders():
@@ -164,22 +174,13 @@ def show_all_orders():
     search_query = request.args.get('search_query')
     if search_query:
         c.execute("""
-        SELECT orders.*, 
-               seller.username AS seller_name, 
-               buyer.username AS buyer_name
+        SELECT *
         FROM orders
-        LEFT JOIN users AS seller ON orders.seller_id = user_id
-        LEFT JOIN users AS buyer ON orders.user_id = user_id
         WHERE name LIKE ? OR description LIKE ?
         """, ('%' + search_query + '%', '%' + search_query + '%'))
     else:
         c.execute("""
-        SELECT orders.*, 
-            seller.username AS seller_name, 
-            buyer.username AS buyer_name
-        FROM orders
-        LEFT JOIN users AS seller ON orders.seller_id = user_id
-        LEFT JOIN users AS buyer ON orders.user_id = user_id
+        SELECT * FROM orders 
         """)
 
     # debag("""
@@ -192,8 +193,15 @@ def show_all_orders():
     # """)
 
     orders = c.fetchall()
+    orders_temp = []
+    for order in orders:
+        order_temp = dict(order)
+        order_temp['seller_name'] = get_username(order['seller_id'])
+        order_temp['buyer_name'] = get_username(order['user_id'])
+        orders_temp.append(order_temp)
+
     conn.close()
-    return render_template('show_all_orders.html', orders=orders)
+    return render_template('show_all_orders.html', orders=orders_temp)
 
 @app.route('/show_all_orders_rerender')
 def show_all_orders_rerender():

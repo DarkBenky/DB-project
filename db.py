@@ -38,6 +38,7 @@ def create_tables():
         description TEXT,
         image TEXT,
         name TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(item_id) REFERENCES items(rowid),
         FOREIGN KEY(user_id) REFERENCES users(rowid)
     )
