@@ -4,14 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <title>Marketplace</title>
+    <link rel="stylesheet" href="{{ url_for('static' , filename='style.css')}}">
 </head>
 
 <body>
     {% if username == 'NaN' %}
-    <h1>Welcome to the Marketplace</h1>
+   
+    <div>
+        <h1>Welcome to the Marketplace</h1>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque rerum quia distinctio! Magnam dolore possimus ab enim, accusantium similique voluptate magni reprehenderit voluptatum quia? Voluptate repellat hic ab similique consectetur.</p>
+        <div>
+            <div>
+                <h3>Electronics</h3>
+                <img src="{{ url_for('static', filename='img.jpg') }}" alt="item1">
+            </div>
+            <div>
+                <h3>Toys</h3>
+                <img src="{{ url_for('static', filename='img2.jpg') }}" alt="item1">
+            </div>
+            <div>
+                <h3>Sneakers</h3>
+                <img src="{{ url_for('static', filename='img3.jpg') }}" alt="item1">
+            </div>
+        </div>
+        <h2 href="{{ url_for('list_items') }}">Explore Items</h2>
+    </div>
     <a href="{{ url_for('register') }}">Register</a>
     <a href="{{ url_for('login') }}">Login</a>
-    <a href="{{ url_for('list_items') }}">View Items</a>
+    
     {% endif %}
     {% if session.user_id %}
     <div>
