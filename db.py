@@ -23,6 +23,7 @@ def create_tables():
         description TEXT,
         image TEXT,
         user_id INTEGER,
+        category TEXT,
         FOREIGN KEY(user_id) REFERENCES users(rowid)
     )
     ''')
@@ -38,6 +39,7 @@ def create_tables():
         description TEXT,
         image TEXT,
         name TEXT,
+        category TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(item_id) REFERENCES items(rowid),
         FOREIGN KEY(user_id) REFERENCES users(rowid)

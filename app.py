@@ -88,7 +88,7 @@ def buy_item(item_id):
             c.execute('SELECT user_id FROM items WHERE rowid = ?', (item_id,))
             seller_id = c.fetchone()['user_id']
 
-            c.execute('INSERT INTO orders (item_id, user_id, seller_id ,  quantity , price , description , image , name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (item_id, session['user_id'], seller_id, 1, item['price'], item['description'], item['image'], item['name']))
+            c.execute('INSERT INTO orders (item_id, user_id, seller_id ,  quantity , price , description , image , name, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (item_id, session['user_id'], seller_id, 1, item['price'], item['description'], item['image'], item['name'], item['category']))
 
             conn.commit()
             flash('Purchase successful!')
@@ -153,11 +153,12 @@ def add_item():
         quantity = int(request.form['quantity'])
         description = request.form['description']
         image = request.form['image']
+        category = request.form['category']
         
         conn = get_db_connection()
         c = conn.cursor()
-        c.execute('INSERT INTO items (name, price, quantity, description, image, user_id) VALUES (?, ?, ?, ?, ?, ?)',
-                  (name, price, quantity, description, image, session['user_id']))
+        c.execute('INSERT INTO items (name, price, quantity, description, image, user_id, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                  (name, price, quantity, description, image, session['user_id']), category)
         conn.commit()
         conn.close()
         
