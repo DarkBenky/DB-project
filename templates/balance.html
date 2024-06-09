@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Balance</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>User Balance</h1>
+    <p>Total Spending: ${{ Total_spading }}</p>
+
+    <!-- Display the graph -->
+    <div id="graphDiv">
+        {{ graph|safe }}
+    </div>
+
+    <h2>Order History</h2>
+    <ul>
+        {% for order in orders %}
+            <li>
+                <p>Name : {{ order['name'] }}</p>
+                <p>Price : ${{ order['price'] }}</p>
+                <p>Item description : {{ order['description'] }}</p>
+                <br><img src="{{ order['image'] }}" alt="{{ order['name'] }}">
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

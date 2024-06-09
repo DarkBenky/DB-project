@@ -4,14 +4,62 @@
     <meta charset="UTF-8">
     <title>Register</title>
     <link rel="stylesheet" href="{{ url_for('static' , filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/15ba5baa7c.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to top left, rgba(102, 126, 234, 0.48), rgba(120, 75, 162, 0.63), rgba(75, 108, 183, 0.63), rgba(24, 40, 72, 0.63));
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .container input {
+            background-color: rgb(245, 245, 245);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .container h1 {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .container input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+    </style>
 </head>
 <body>
-    <h1>Register</h1>
-    <form method="post">
-        <label>Username:</label><input type="text" name="username"><br>
-        <label>Password:</label><input type="password" name="password"><br>
-        <label>Email:</label><input type="email" name="email"><br>
-        <label>Balance:</label><input type="number" step="0.01" name="balance"><br>
+    <form method="post" class="container">
+        <h1>Register</h1>
+        <label><i class="fa-solid fa-user"></i> Username</label><input type="text" name="username"><br>
+        <label><i class="fa-solid fa-lock"></i> Password</label><input type="password" name="password"><br>
+        <label><i class="fa-solid fa-envelope"></i> Email</label><input type="email" name="email"><br>
+        <label><i class="fa-solid fa-money-bill"></i> Balance</label><input type="number" step="0.01" name="balance"><br>
         <input type="submit" value="Register">
     </form>
 </body>

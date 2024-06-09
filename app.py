@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from db import create_tables
 import sqlite3
 import json
+import plotly.express as px
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -30,11 +31,12 @@ def index():
     items = []
     offers = []
     if 'user_id' in session:
+        user_id = session['user_id']
         balance = get_user_balance(session['user_id'])
         username = get_username(session['user_id'])
         items = get_user_items(session['user_id'])
         offers = get_user_offers(session['user_id'])
-    return render_template('index.html', balance=balance , username=username , items=items , offers=offers)
+    return render_template('index.html', balance=balance , username=username , items=items , offers=offers , user_id=user_id)
 
 def get_username(user_id):
     try:
@@ -44,6 +46,17 @@ def get_username(user_id):
         username = c.fetchone()['username']
         conn.close()
         return username
+    except:
+        return 'NaN'
+    
+def get_email(user_id):
+    try:
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute('SELECT email FROM users WHERE rowid = ?', (user_id,))
+        email = c.fetchone()['email']
+        conn.close()
+        return email
     except:
         return 'NaN'
 
@@ -158,7 +171,7 @@ def add_item():
         conn = get_db_connection()
         c = conn.cursor()
         c.execute('INSERT INTO items (name, price, quantity, description, image, user_id, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                  (name, price, quantity, description, image, session['user_id']), category)
+                  (name, price, quantity, description, image, session['user_id'], category) )
         conn.commit()
         conn.close()
         
@@ -166,6 +179,61 @@ def add_item():
     
     return render_template('add_item.html')
 
+def update_user_profile(user_id, new_username, new_password, new_email):
+    conn = get_db_connection()
+    c = conn.cursor()
+    hashed_password = generate_password_hash(new_password)
+    c.execute('UPDATE users SET username = ?, password = ?, email = ? WHERE rowid = ?', (new_username, hashed_password, new_email, user_id))
+    conn.commit()
+    conn.close()
+
+@app.route('/profile/<int:user_id>', methods=['GET', 'POST'])
+def profile(user_id):
+    username = get_username(user_id)
+    email = get_email(user_id)  # Assuming you have a function to retrieve the user's email
+    if request.method == 'POST':
+        new_username = request.form['username']
+        new_password = request.form['password']
+        new_email = request.form['email']
+        update_user_profile(user_id, new_username, new_password, new_email)
+        return redirect(url_for('index', user_id=user_id))
+    return render_template('profile.html', user_id=user_id, username=username, email=email)
+
+def get_spending(user_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT * FROM orders WHERE user_id = ?', (user_id,))
+    orders = c.fetchall()
+    conn.close()
+
+    timestamps = []
+    cumulative_spending = []
+    total_spending = 0
+
+    for order in orders:
+        total_spending += order['price']
+        timestamps.append(order['timestamp'])
+        cumulative_spending.append(total_spending)
+    
+    if not orders:
+        return [], 0, None
+
+    print(timestamps)
+    print(cumulative_spending)
+
+    fig = px.line(x=timestamps, y=cumulative_spending, labels={'x': 'Timestamp', 'y': 'Cumulative Spending'})
+    graph = fig.to_html(full_html=False)
+
+    return orders, total_spending, graph
+
+@app.route('/balance/<int:user_id>')
+def balance(user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if not user_id:
+        return "User ID is required"
+    orders, total_spending, graph = get_spending(user_id)
+    return render_template('balance.html', orders=orders, Total_spading=total_spending, graph=graph)
 
 @app.route('/show_all_orders')
 def show_all_orders():
