@@ -1,29 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>User Balance</title>
+    <script src="https://kit.fontawesome.com/15ba5baa7c.js" crossorigin="anonymous"></script>
+    <!-- <link rel="stylesheet" href="{{ url_for('static' , filename='style.css')}}"> -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>
-<body>
-    <h1>User Balance</h1>
-    <p>Total Spending: ${{ Total_spading }}</p>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: #333;
+        }
 
-    <!-- Display the graph -->
-    <div id="graphDiv">
-        {{ graph|safe }}
+        h1,
+        h2 {
+            text-align: center;
+            color: #444;
+        }
+
+        a {
+            text-decoration: none;
+            /* color: #007BFF; */
+            color: #fff;
+            background-color: #007BFF;
+            margin: 0 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: ease-in-out 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        a.link {
+            color: #444;
+            background-color: transparent;
+            box-shadow: none;
+            padding: 0%;
+        }
+
+        a.link:hover {
+            color: #444;
+            background-color: transparent;
+        }
+
+
+        a:hover {
+            /* text-decoration: underline; */
+            background-color: #0056b3;
+            transition: ease-in-out 0.2s;
+        }
+
+        .container_ {
+            width: 90%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .scrollable-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 20px;
+            height: 600px;
+            /* Adjust the height as needed */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            padding: 10px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .item {
+            display: flex;
+            width: 95%;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .item img {
+            max-width: 175px;
+            /* Adjust the width as needed */
+            max-height: 175px;
+            /* Adjust the height as needed */
+            margin-right: 20px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .item div {
+            flex: 1;
+        }
+
+        .item p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .item a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .item a:hover {
+            background-color: #0056b3;
+        }
+
+        /* Adding a scrollbar style (optional) */
+        .scrollable-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        #graphDiv {
+            width: 100%;
+            height: 400px;
+            padding: 20px;
+        }
+
+        .navbar {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgb(245, 245, 245);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0px 0px;
+            width: 100%;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .navbar .container {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .navbar .container a {
+            margin: 0 5px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .wrapper-no-style {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: transparent;
+            border: none;
+            padding: 0px;
+            margin: 0px;
+        }
+
+
+        .navbar .profile {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            max-width: 35%;
+            justify-content: space-between;
+            border-radius: 15px;
+            margin-right: 0px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: radial-gradient(circle at 18.7% 37.8%, rgb(250, 250, 250) 0%, rgb(225, 234, 238) 90%);
+
+        }
+
+        .navbar .profile h2,
+        .navbar .profile p {
+            margin: 0px 10px;
+            font-size: 14px;
+        }
+
+        .navbar .profile i {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}">Home</a>
+            <div class="profile">
+                <a class='link' href="{{ url_for('profile', user_id=user_id) }}">
+                    <h2><i class="fa-solid fa-user"></i> User {{ username }}</h2>
+                </a>
+                <a class='link' href="{{ url_for('balance', user_id=user_id) }}">
+                    <p><i class="fa-solid fa-money-bill"></i> Balance Amount {{ balance }} $</p>
+                </a>
+            </div>
+        </div>
     </div>
 
-    <h2>Order History</h2>
-    <ul>
-        {% for order in orders %}
-            <li>
-                <p>Name : {{ order['name'] }}</p>
-                <p>Price : ${{ order['price'] }}</p>
-                <p>Item description : {{ order['description'] }}</p>
-                <br><img src="{{ order['image'] }}" alt="{{ order['name'] }}">
-            </li>
-        {% endfor %}
-    </ul>
+    <!-- Display the graph -->
+    <div class="container_">
+        <div id="graphDiv">
+            {{ graph|safe }}
+        </div>
+    </div>
+
+    <h1>Order History</h2>
+        <h2><i class="fa-solid fa-money-bill"></i> Total Spending: ${{ Total_spading }} </p>
+            <div class="container_">
+                <div class="scrollable-container">
+                    {% for order in orders %}
+                    <div class="item">
+                        <img src="{{ order['image'] }}" alt="{{ order['name'] }}">
+                        <div>
+                            <p>Name : {{ order['name'] }}</p>
+                            <p>Category : {{ order['category']}}</p>
+                            <p>Time of parches : {{order['timestamp']}} </p>
+                            <p>Price : ${{ order['price'] }}</p>
+                            <p>Item description : {{ order['description'] }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
 </body>
+
 </html>

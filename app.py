@@ -30,7 +30,7 @@ def index():
     username = 'NaN'
     items = []
     offers = []
-    # user_id = None
+    user_id = -1
     if 'user_id' in session:
         user_id = session['user_id']
         balance = get_user_balance(session['user_id'])
@@ -234,7 +234,7 @@ def balance(user_id):
     if not user_id:
         return "User ID is required"
     orders, total_spending, graph = get_spending(user_id)
-    return render_template('balance.html', orders=orders, Total_spading=total_spending, graph=graph)
+    return render_template('balance.html', orders=orders, Total_spading=total_spending, graph=graph , user_id=user_id , username=get_username(user_id) , balance=get_user_balance(user_id))
 
 @app.route('/show_all_orders')
 def show_all_orders():
