@@ -277,8 +277,21 @@ def show_all_orders():
 def show_all_orders_rerender():
     return redirect(url_for('show_all_orders'))
 
+def deb_print(obj):
+    print(json.dumps(obj, indent=2))
+
 @app.route('/list_items')
 def list_items():
+
+    deb_print(session)
+
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    balance = get_user_balance(session['user_id'])
+    username = get_username(session['user_id'])
+    user_id = session['user_id']
+
     search_query = request.args.get('search_query')
     conn = get_db_connection()
     c = conn.cursor()
@@ -292,7 +305,7 @@ def list_items():
     items = c.fetchall()
     conn.close()
     
-    return render_template('list_items.html', items=items)
+    return render_template('list_items.html', items=items , username=username , balance=balance , user_id=user_id)
 
 @app.route('/edit_item/<int:item_id>', methods=['GET', 'POST'])
 def edit_item(item_id):
