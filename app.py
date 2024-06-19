@@ -30,6 +30,7 @@ def index():
     username = 'NaN'
     items = []
     offers = []
+    # user_id = None
     if 'user_id' in session:
         user_id = session['user_id']
         balance = get_user_balance(session['user_id'])
@@ -398,6 +399,7 @@ def search_bought_items():
     if 'user_id' in session:
         balance = get_user_balance(session['user_id'])
         username = get_username(session['user_id'])
+        user_id = session['user_id']
         if search_query:
             items = get_user_items(session['user_id'], search_query)
             if not items:
@@ -407,7 +409,7 @@ def search_bought_items():
             items = get_user_items(session['user_id'])
         offers = get_user_offers(session['user_id'])
 
-    return render_template('index.html', balance=balance, username=username, items=items, offers=offers)
+    return render_template('index.html', balance=balance, username=username, items=items, offers=offers , user_id=user_id)
 
 @app.route('/reset_search' , methods=['GET' , 'POST'])
 def reset_search():

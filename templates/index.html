@@ -13,6 +13,7 @@
             justify-content: center;
             align-items: center;
             padding: 0px 0px;
+            width: 100%;
         }
 
         .navbar .container {
@@ -66,6 +67,78 @@
         .navbar .profile i {
             margin-right: 5px;
         }
+
+        .scrollable-container {
+            width: 95%;
+            height: 600px; /* Adjust the height as needed */
+            overflow-y: scroll;
+            padding: 10px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .item {
+            display: flex;
+            width: 95%;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .item img {
+            max-width: 175px; /* Adjust the width as needed */
+            max-height: 175px; /* Adjust the height as needed */
+            margin-right: 20px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .item div {
+            flex: 1;
+        }
+        
+        .item p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .item a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .item a:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Adding a scrollbar style (optional) */
+        .scrollable-container::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .scrollable-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+        
+        .scrollable-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
     </style>
 </head>
 
@@ -103,6 +176,8 @@
             <a href="{{ url_for('add_item') }}">Add Item</a>
             <a href="{{ url_for('logout') }}">Logout</a>
             <a href="{{ url_for('show_all_orders')}}">Show All Orders</a>
+            <a href="{{ url_for('list_items') }}">View Items</a>
+
             <div class="profile">
                 <a class='link' href="{{ url_for('profile', user_id=user_id) }}">
                     <h2><i class="fa-solid fa-user"></i> User {{ username }}</h2>
@@ -117,6 +192,7 @@
     <div>
         {% if offers %}
         <h2>Your offers</h2>
+
         <form method="GET" action="{{ url_for('search_offers') }}">
             <input type="text" name="search_query" placeholder="Search items">
             <button type="submit">Search</button>
@@ -125,22 +201,27 @@
             <button type="submit">Reset Search</button>
         </form>
 
-        <ul>
+        <div class="scrollable-container">
             {% for offer in offers %}
-            <li>
-                <p>Name : {{ offer['name'] }}</p>
-                <p>Price : ${{ offer['price'] }}</p>
-                <p>Item description : {{ offer['description'] }}</p>
-                <br><img src="{{ offer['image'] }}" alt="{{ offer['name'] }}">
+            <div class="item">
+                <img src="{{ offer['image'] }}" alt="{{ offer['name'] }}">
+                <div>
+                    <p>Name : {{ offer['name'] }}</p>
+                    <p>Category : {{ offer['category'] }}</p>
+                    <p>Price : ${{ offer['price'] }}</p>
+                    <p>Item description : {{ offer['description'] }}</p>
+                </div>
                 <a href="{{ url_for('edit_item', item_id=offer['rowid']) }}">Edit</a>
-            </li>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
         {% endif %}
     </div>
 
     <div>
         {% if items %}
+        <h2>Your bought items</h2>
+
         <form method="GET" action="{{ url_for('search_bought_items') }}">
             <input type="text" name="search_query" placeholder="Search bought items">
             <button type="submit">Search</button>
@@ -149,25 +230,24 @@
             <button type="submit">Reset Search</button>
         </form>
 
-        <h2>Your bought items</h2>
-        {% for item in items %}
-        <li>
-            <p>Name : {{ item['name'] }}</p>
-            <p>Price : ${{ item['price'] }}</p>
-            <p> Item description : {{ item['description'] }} </p>
-            <p>Time of parches : {{item['timestamp']}} </p>
-            <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
-            <a href="{{ url_for('get_historical_price_for_item' , item_id=item['rowid'])}}"> Historical price</a>
-        </li>
-        {% endfor %}
+        <div class="scrollable-container">
+            {% for item in items %}
+            <div class="item">
+                <img src="{{ item['image'] }}" alt="{{ item['name'] }}">
+                <div>
+                    <p>Name : {{ item['name'] }}</p>
+                    <p>Category : {{ item['category'] }}</p>
+                    <p>Price : ${{ item['price'] }}</p>
+                    <p>Item description : {{ item['description'] }} </p>
+                    <p>Time of parches : {{item['timestamp']}} </p>
+                </div>
+                <a href="{{ url_for('get_historical_price_for_item' , item_id=item['item_id'])}}"> Historical price</a>
+            </div>
+            {% endfor %}
+        </div>
+
         {% endif %}
     </div>
-
-    <div>
-        <h2>Items</h2>
-        <a href="{{ url_for('list_items') }}">View Items</a>
-    </div>
-
     {% endif %}
 </body>
 

@@ -18,7 +18,7 @@ a {
     text-decoration: none;
     /* color: #007BFF; */
     color: #fff;
-    background-color: #4CAF50;
+    background-color: #007BFF;
     margin: 0 10px;
     padding: 10px 15px;
     border-radius: 5px;
@@ -42,7 +42,7 @@ a.link:hover {
 
 a:hover {
     /* text-decoration: underline; */
-    background-color: #45a049;
+    background-color: #0056b3;
     transition: ease-in-out 0.2s;
 }
 
