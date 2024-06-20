@@ -210,14 +210,19 @@ def get_spending(user_id):
     timestamps = []
     cumulative_spending = []
     total_spending = 0
+    categories = {}
 
     for order in orders:
         total_spending += order['price']
         timestamps.append(order['timestamp'])
         cumulative_spending.append(total_spending)
+        if order['category'] not in categories:
+            categories[order['category']] = order['price']
+        else:
+            categories[order['category']] += order['price']
     
     if not orders:
-        return [], 0, None
+        return [], 0, None , None
 
     print(timestamps)
     print(cumulative_spending)
@@ -225,7 +230,11 @@ def get_spending(user_id):
     fig = px.line(x=timestamps, y=cumulative_spending, labels={'x': 'Timestamp', 'y': 'Cumulative Spending'})
     graph = fig.to_html(full_html=False)
 
-    return orders, total_spending, graph
+    pie = px.pie(values=list(categories.values()), names=list(categories.keys()))
+    pie_graph = pie.to_html(full_html=False)
+
+    return orders, total_spending, graph , pie_graph
+
 
 @app.route('/balance/<int:user_id>')
 def balance(user_id):
@@ -233,8 +242,8 @@ def balance(user_id):
         return redirect(url_for('login'))
     if not user_id:
         return "User ID is required"
-    orders, total_spending, graph = get_spending(user_id)
-    return render_template('balance.html', orders=orders, Total_spading=total_spending, graph=graph , user_id=user_id , username=get_username(user_id) , balance=get_user_balance(user_id))
+    orders, total_spending, graph , pie_graph = get_spending(user_id)
+    return render_template('balance.html', orders=orders, Total_spading=total_spending, graph=graph , user_id=user_id , username=get_username(user_id) , balance=get_user_balance(user_id) , pie_graph=pie_graph)
 
 @app.route('/show_all_orders')
 def show_all_orders():
@@ -280,6 +289,44 @@ def show_all_orders_rerender():
 def deb_print(obj):
     print(json.dumps(obj, indent=2))
 
+
+def filter_orders(
+        items,
+        price_dispending=None,
+        price_upending=None,
+        price_min=None,
+        price_max=None,
+):
+    filtered_items = []
+    for item in items:
+        if (price_min is None or item['price'] >= price_min) and (price_max is None or item['price'] <= price_max):
+            filtered_items.append(item)
+        
+    # sort by price
+    if price_dispending:
+        filtered_items = sorted(filtered_items, key=lambda x: x['price'])
+    if price_upending:
+        filtered_items = sorted(filtered_items, key=lambda x: x['price'], reverse=True)
+    
+    return filtered_items
+
+
+def get_categories():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT category FROM items')
+    categories = c.fetchall()
+    conn.close()
+    return set([category['category'] for category in categories])
+
+def top_selling_items():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT item_id, SUM(quantity) as total_quantity FROM orders GROUP BY item_id')
+    top_items = c.fetchall()
+    conn.close()
+    return sorted(top_items, key=lambda x: x['total_quantity'], reverse=True)
+
 @app.route('/list_items')
 def list_items():
 
@@ -291,21 +338,45 @@ def list_items():
     balance = get_user_balance(session['user_id'])
     username = get_username(session['user_id'])
     user_id = session['user_id']
+    
 
     search_query = request.args.get('search_query')
+    search_query = request.args.get('search_query')
+    price_min = request.args.get('price_min', type=float)
+    price_max = request.args.get('price_max', type=float)
+    price_dispending = request.args.get('price_dispending', type=bool)
+    price_upending = request.args.get('price_upending', type=bool)
+    category = request.args.get('category')
+    top_selling = request.args.get('top_selling')
+
     conn = get_db_connection()
     c = conn.cursor()
     
+    query = 'SELECT * FROM items WHERE quantity > 0'
+    params = []
+
     if search_query:
-        c.execute('SELECT * FROM items WHERE (name LIKE ? OR description LIKE ?) AND quantity > 0', 
-                  ('%' + search_query + '%', '%' + search_query + '%'))
-    else:
-        c.execute('SELECT * FROM items WHERE quantity > 0')
-        
+        query += ' AND (name LIKE ? OR description LIKE ? OR category LIKE ?)'
+        params.extend(['%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'])
+
+    if category:
+        query += ' AND category = ?'
+        params.append(category)
+
+    c.execute(query, params)
     items = c.fetchall()
     conn.close()
+
+    items = filter_orders(items, price_dispending, price_upending, price_min, price_max)
     
-    return render_template('list_items.html', items=items , username=username , balance=balance , user_id=user_id)
+    if top_selling:
+        top_items = top_selling_items()
+        top_item_ids = [item['item_id'] for item in top_items]
+        items = [item for item in items if item['rowid'] in top_item_ids]
+
+    categories = get_categories()
+
+    return render_template('list_items.html', items=items , username=username , balance=balance , user_id=user_id , categories=categories)
 
 @app.route('/edit_item/<int:item_id>', methods=['GET', 'POST'])
 def edit_item(item_id):
@@ -357,7 +428,7 @@ def get_user_items(user_id , search_query = None):
     conn = get_db_connection()
     c = conn.cursor()
     if search_query:
-        c.execute('SELECT * FROM orders WHERE user_id = ? AND (name LIKE ? OR description LIKE ?)', (user_id, '%' + search_query + '%', '%' + search_query + '%'))
+        c.execute('SELECT * FROM orders WHERE user_id = ? AND (name LIKE ? OR description LIKE ? OR category LIKE ?)', (user_id, '%' + search_query + '%', '%' + search_query + '%' , '%' + search_query + '%'))
     else:
         c.execute('SELECT * FROM orders WHERE user_id = ?', (user_id,))
     items = c.fetchall()
@@ -371,7 +442,7 @@ def get_user_offers(user_id , search_query = None):
     conn = get_db_connection()
     c = conn.cursor()
     if search_query:
-        c.execute('SELECT * FROM items WHERE user_id = ? AND (name LIKE ? OR description LIKE ?)', (user_id, '%' + search_query + '%', '%' + search_query + '%'))
+        c.execute('SELECT * FROM items WHERE user_id = ? AND (name LIKE ? OR description LIKE ? OR category LIKE ?)', (user_id, '%' + search_query + '%', '%' + search_query + '%' , '%' + search_query + '%'))
     else:
         c.execute('SELECT * FROM items WHERE user_id = ?', (user_id,))
     items = c.fetchall()
@@ -387,9 +458,14 @@ def search_offers():
     username = 'NaN'
     items = []
     offers = []
+    
     if 'user_id' in session:
         balance = get_user_balance(session['user_id'])
         username = get_username(session['user_id'])
+        
+        # Store the search_query in session for future use
+        session['search_query'] = search_query
+        
         if search_query:
             offers = get_user_offers(session['user_id'], search_query)
             if not offers:
@@ -397,39 +473,51 @@ def search_offers():
                 offers = get_user_offers(session['user_id'])
         else:
             offers = get_user_offers(session['user_id'])
+        
         items = get_user_items(session['user_id'])
+    else:
+        flash('Please log in to search offers.')
 
-    return render_template('index.html', balance=balance, username=username, items=items, offers=offers)
+    return render_template('index.html', balance=balance, username=username, items=items, offers=offers , user_id=session['user_id'])
 
 
 @app.route('/search_bought_items', methods=['GET', 'POST'])
 def search_bought_items():
-    search_query = request.args.get('search_query')
+    search_query = request.args.get('search_query_buy')
     balance = 'NaN'
     username = 'NaN'
     items = []
     offers = []
+    user_id = None  # Initialize user_id
+
     if 'user_id' in session:
-        balance = get_user_balance(session['user_id'])
-        username = get_username(session['user_id'])
         user_id = session['user_id']
+        balance = get_user_balance(user_id)
+        username = get_username(user_id)
+
+        # Store the search_query in session for persistence
+        session['search_query'] = search_query
+
         if search_query:
-            items = get_user_items(session['user_id'], search_query)
+            items = get_user_items(user_id, search_query)
             if not items:
                 flash('No items found')
-                items = get_user_items(session['user_id'])
+                items = get_user_items(user_id)
         else:
-            items = get_user_items(session['user_id'])
-        offers = get_user_offers(session['user_id'])
+            items = get_user_items(user_id)
 
-    return render_template('index.html', balance=balance, username=username, items=items, offers=offers , user_id=user_id)
+        offers = get_user_offers(user_id)
+
+    return render_template('index.html', balance=balance, username=username, items=items, offers=offers, user_id=user_id)
 
 @app.route('/reset_search' , methods=['GET' , 'POST'])
 def reset_search():
+    session.pop('search_query', None)
     return redirect(url_for('index'))
 
 @app.route('/reset_search_offers' , methods=['GET' , 'POST'])
 def reset_search_offers():
+    session.pop('search_query_buy', None)
     return redirect(url_for('list_items'))
 
 
