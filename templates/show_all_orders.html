@@ -1,31 +1,414 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Orders</title>
+    <script src="https://kit.fontawesome.com/15ba5baa7c.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{{ url_for('static' , filename='style.css')}}">
+    <style>
+        .navbar {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgb(245, 245, 245);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0px 0px;
+            width: 100%;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .navbar .container {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .navbar .container a {
+            margin: 0 5px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .wrapper-no-style {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: transparent;
+            border: none;
+            padding: 0px;
+            margin: 0px;
+        }
+
+
+        .navbar .profile {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            max-width: 35%;
+            justify-content: space-between;
+            border-radius: 15px;
+            margin-right: 0px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: radial-gradient(circle at 18.7% 37.8%, rgb(250, 250, 250) 0%, rgb(225, 234, 238) 90%);
+
+        }
+
+        .navbar .profile h2,
+        .navbar .profile p {
+            margin: 0px 10px;
+            font-size: 14px;
+        }
+
+        .navbar .profile i {
+            margin-right: 5px;
+        }
+
+        .scrollable-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 20px;
+            width: 95%;
+            height: 600px;
+            /* Adjust the height as needed */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            padding: 10px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .item {
+            display: flex;
+            width: 95%;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .item img {
+            max-width: 175px;
+            /* Adjust the width as needed */
+            max-height: 175px;
+            /* Adjust the height as needed */
+            margin-right: 20px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .item div {
+            flex: 1;
+        }
+
+        .item p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .item a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .item a:hover {
+            background-color: #0056b3;
+        }
+
+        /* Adding a scrollbar style (optional) */
+        .scrollable-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-form,
+        .reset-form {
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+
+        .input-field {
+            width: 150px;
+            height: 40px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 200px;
+        }
+
+        .search-button,
+        .reset-button {
+            width: 150px;
+            height: 40px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search-button:hover,
+        .reset-button:hover {
+            background-color: #0056b3;
+        }
+
+        .reset-button {
+            background-color: #DC3545;
+        }
+
+        .reset-button:hover {
+            background-color: #c82333;
+        }
+
+        .filter-toggle-button {
+            width: 150px;
+            height: 40px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+            margin-inline: 10px;
+        }
+
+        .filter-options {
+            margin-left: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .input-field {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .current-filters {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+
+        .current-filters div {
+            margin-right: 10px;
+            padding: 5px 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 0px 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: position 0.8s ease;
+        }
+
+        .current-filters div:hover {
+            position: relative;
+            top: -2px;
+            transition: position 0.8s ease;
+        }
+
+        .current-filters p {
+            margin: 5px 0;
+        }
+
+    </style>
+
+    <script>
+        function toggleFilter() {
+            var filterOptions = document.getElementById('filter-options');
+            if (filterOptions.style.display === "none") {
+                filterOptions.style.display = "block";
+            } else {
+                filterOptions.style.display = "none";
+            }
+        }
+    </script>
 </head>
+
 <body>
+    <div class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}">Home</a>
+            <div class="profile">
+                <a class='link' href="{{ url_for('profile', user_id=user_id) }}">
+                    <h2><i class="fa-solid fa-user"></i> User {{ username }}</h2>
+                </a>
+                <a class='link' href="{{ url_for('balance', user_id=user_id) }}">
+                    <p><i class="fa-solid fa-money-bill"></i> Balance Amount {{ balance }} $</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <h1>Orders</h1>
-    <form method="GET" action="{{ url_for('show_all_orders') }}">
+
+    <div class="form-container">
+        <form method="GET" action="{{ url_for('show_all_orders') }}" class="search-form">
+            <input class="input-field" type="text" name="search_query" placeholder="Search items"
+                value="{{ request.args.get('search_query', '') }}">
+            <button type="button" class="filter-toggle-button" onclick="toggleFilter()">Filters</button>
+            <div id="filter-options" class="filter-options" style="display: none;">
+                <input class="input-field" type="number" name="price_min" placeholder="Min Price" step="0.01"
+                    value="{{ request.args.get('price_min', '') }}">
+                <input class="input-field" type="number" name="price_max" placeholder="Max Price" step="0.01"
+                    value="{{ request.args.get('price_max', '') }}">
+                <select class="input-field" name="sort_order">
+                    <option value="">Sort by</option>
+                    <option value="asc" {% if request.args.get('sort_order')=='asc' %}selected{% endif %}>Price
+                        Ascending</option>
+                    <option value="desc" {% if request.args.get('sort_order')=='desc' %}selected{% endif %}>Price
+                        Descending</option>
+                </select>
+                <label for="category">Category:</label>
+                <select name="category" class="input-field">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if request.args.get('category')==cat %}selected{% endif %}>{{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="search-button" type="submit">Search</button>
+        </form>
+        <form method="GET" action="{{ url_for('show_all_orders_rerender')}}" class="reset-form">
+            <button class="reset-button" type="submit">Reset Search</button>
+        </form>
+    </div>
+
+    <h2>Current Filters:</h2>
+    <div>
+        <div class="current-filters">
+            {% if request.args.get('search_query') %}
+            <div>
+                <p><strong>Search Query:</strong> {{ request.args.get('search_query') }}</p>
+            </div>
+            {% endif %}
+            {% if request.args.get('price_min') %}
+            <div>
+                <p><strong>Min Price:</strong> {{ request.args.get('price_min') }}</p>
+            </div>
+            {% endif %}
+            {% if request.args.get('price_max') %}
+            <div>
+                <p><strong>Max Price:</strong> {{ request.args.get('price_max') }}</p>
+            </div>
+            {% endif %}
+            {% if request.args.get('sort_order') %}
+            <div>
+                <p><strong>Sort Order:</strong> {{ 'Ascending' if request.args.get('sort_order') == 'asc' else
+                    'Descending'
+                    }}
+                </p>
+            </div>
+            {% endif %}
+            {% if request.args.get('category') %}
+            <div>
+                <p><strong>Category:</strong> {{ request.args.get('category') }}</p>
+            </div>
+            {% endif %}
+            {% if not request.args.get('search_query') and not request.args.get('price_min') and not
+            request.args.get('price_max') and not request.args.get('sort_order') and not request.args.get('category') %}
+            <div>
+                <p>No filters applied.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- <form method="GET" action="{{ url_for('show_all_orders') }}">
         <input type="text" name="search_query" placeholder="Search items">
         <button type="submit">Search</button>
-    </form>
-    <form method="GET" action="{{ url_for('show_all_orders_rerender')}}" >
-        <button type="submit">Reset Search</button>
-    </form>
-    <ul>
+    </form> -->
+
+    <div class="scrollable-container">
+        {% if not orders %}
+        <h2>No orders found</h2>
+        {% endif %}
         {% for item in orders %}
-        <li>
-            {{ item['name'] }} - ${{ item['price'] }}
-            <p>Seller : {{ item['seller_name'] }}</p>
-            <p>Buyer : {{ item['buyer_name'] }}</p>
-            <br>{{ item['description'] }}
-            <p>Time of Parches : {{ item['timestamp']}}</p>
-            <br><img src="{{ item['image'] }}" alt="{{ item['name'] }}">
-        </li>
+        <div class="item">
+            <img src="{{ item['image'] }}" alt="{{ item['name'] }}">
+            <div>
+                <p>Name : {{ item['name'] }}</p>
+                <p>Category : {{ item['category'] }}</p>
+                <p>Price : ${{ item['price'] }}</p>
+                <p>Item description : {{ item['description'] }} </p>
+                <p>Time of parches : {{item['timestamp']}} </p>
+            </div>
+        </div>
         {% endfor %}
-    </ul>
-    <a href="{{ url_for('index') }}">Home</a>
+    </div>
 </body>
+
 </html>

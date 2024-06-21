@@ -1,20 +1,220 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Add Item</title>
-    <link rel="stylesheet" href="{{ url_for('static' , filename='style.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .item img {
+            max-width: 200px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 95%;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+
+        .row label {
+            margin: 5px 0;
+            text-align: left;
+        }
+
+        .row input,
+        .row textarea {
+            margin: 5px 0;
+            padding: 10px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        form {
+            margin-top: 10px;
+        }
+
+        .item .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+            color: #888;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .input-field {
+            margin: 5px 0;
+            padding: 10px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .navbar {
+            background-color: rgb(245, 245, 245);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0px 0px;
+            width: 100%;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .navbar .container a {
+            margin: 0 5px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .wrapper-no-style {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: transparent;
+            border: none;
+            padding: 0px;
+            margin: 0px;
+        }
+
+
+        .navbar .profile {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            max-width: 35%;
+            justify-content: space-between;
+            border-radius: 15px;
+            margin-right: 0px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: radial-gradient(circle at 18.7% 37.8%, rgb(250, 250, 250) 0%, rgb(225, 234, 238) 90%);
+
+        }
+
+        .navbar .profile h2,
+        .navbar .profile p {
+            margin: 0px 10px;
+            font-size: 14px;
+        }
+
+        .navbar .profile i {
+            margin-right: 5px;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
+
 <body>
+    <div class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}">Home</a>
+            <div class="profile">
+                <a class='link' href="{{ url_for('profile', user_id=user_id) }}">
+                    <h2><i class="fa-solid fa-user"></i> User {{ username }}</h2>
+                </a>
+                <a class='link' href="{{ url_for('balance', user_id=user_id) }}">
+                    <p><i class="fa-solid fa-money-bill"></i> Balance Amount {{ balance }} $</p>
+                </a>
+            </div>
+        </div>
+    </div>
     <h1>Add Item</h1>
-    <form method="post">
-        <label>Name:</label><input type="text" name="name"><br>
-        <label>Price:</label><input type="number" step="0.01" name="price"><br>
-        <label>Quantity:</label><input type="number" name="quantity"><br>
-        <label>Description:</label><textarea name="description"></textarea><br>
-        <label>Image URL:</label><input type="text" name="image"><br>
-        <label>Category:</label><input type="text" name="category"><br>
-        <input type="submit" value="Add Item">
+    <form method="POST" class="item">
+        <h2>Preview of image</h2>
+        <div id="image-container" class="placeholder">
+            Image has not been uploaded
+        </div>
+        <div class="row">
+            <label>Name:</label>
+            <input type="text" name="name" required>
+            <label>Price:</label>
+            <input type="number" step="0.01" name="price" required>
+            <label>Quantity:</label>
+            <input type="number" name="quantity" required>
+            <label>Description:</label>
+            <textarea name="description" required></textarea>
+            <label>Image URL:</label>
+            <input type="text" name="image" id="image-url" required>
+            <label>Category:</label>
+            <select id="existing-category" name="category" class="input-field" required>
+                <option value="" disabled selected>Select a category</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+                <option value="new">Create new category</option>
+            </select>
+            <input type="text" id="new-category" name="new_category" placeholder="Enter new category"
+                style="display: none;">
+        </div>
+        <button type="submit" value="Add Item"> Add Item </button>
     </form>
+    <script>
+        document.getElementById('image-url').addEventListener('input', function () {
+            const imageUrl = this.value;
+            const imageContainer = document.getElementById('image-container');
+
+            if (imageUrl) {
+                imageContainer.innerHTML = `<img id="image-preview" src="${imageUrl}" alt="Image Preview">`;
+            } else {
+                imageContainer.innerHTML = 'Image has not been uploaded';
+            }
+        });
+
+        document.getElementById('existing-category').addEventListener('change', function () {
+            const newCategoryInput = document.getElementById('new-category');
+            if (this.value === 'new') {
+                newCategoryInput.style.display = 'block';
+            } else {
+                newCategoryInput.style.display = 'none';
+            }
+        });
+    </script>
 </body>
+
 </html>

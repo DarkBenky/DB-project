@@ -161,24 +161,34 @@ def add_item():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
+    categories = get_categories()
+
     if request.method == 'POST':
-        name = request.form['name']
-        price = float(request.form['price'])
-        quantity = int(request.form['quantity'])
-        description = request.form['description']
-        image = request.form['image']
-        category = request.form['category']
-        
+        name = request.form.get('name')
+        price = request.form.get('price')
+        quantity = request.form.get('quantity')
+        description = request.form.get('description')
+        image = request.form.get('image')
+        category = request.form.get('category')
+        new_category = request.form.get('new_category')
+
+        if new_category:
+            category = new_category
+
+        # Convert form data types appropriately
+        price = float(price) if price else 0.0
+        quantity = int(quantity) if quantity else 0
+
         conn = get_db_connection()
         c = conn.cursor()
         c.execute('INSERT INTO items (name, price, quantity, description, image, user_id, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                  (name, price, quantity, description, image, session['user_id'], category) )
+                  (name, price, quantity, description, image, session['user_id'], category))
         conn.commit()
         conn.close()
-        
-        return redirect(url_for('list_items'))
-    
-    return render_template('add_item.html')
+
+        return redirect(url_for('index'))
+
+    return render_template('add_item.html', categories=categories , user_id=session['user_id'], username=get_username(session['user_id']), balance=get_user_balance(session['user_id']))
 
 def update_user_profile(user_id, new_username, new_password, new_email):
     conn = get_db_connection()
@@ -245,33 +255,46 @@ def balance(user_id):
     orders, total_spending, graph , pie_graph = get_spending(user_id)
     return render_template('balance.html', orders=orders, Total_spading=total_spending, graph=graph , user_id=user_id , username=get_username(user_id) , balance=get_user_balance(user_id) , pie_graph=pie_graph)
 
-@app.route('/show_all_orders')
+@app.route('/show_all_orders', methods=['GET'])
 def show_all_orders():
+    search_query = request.args.get('search_query', '')
+    price_min = request.args.get('price_min', type=float)
+    price_max = request.args.get('price_max', type=float)
+    sort_order = request.args.get('sort_order', '')
+    category = request.args.get('category', '')
+
     conn = get_db_connection()
     c = conn.cursor()
 
-    search_query = request.args.get('search_query')
+    query = 'SELECT * FROM orders WHERE 1=1'
+    params = []
+
     if search_query:
-        c.execute("""
-        SELECT *
-        FROM orders
-        WHERE name LIKE ? OR description LIKE ?
-        """, ('%' + search_query + '%', '%' + search_query + '%'))
-    else:
-        c.execute("""
-        SELECT * FROM orders 
-        """)
+        query += ' AND (name LIKE ? OR description LIKE ? OR category LIKE ?)'
+        params.extend(['%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'])
 
-    # debag("""
-    # SELECT orders.*, 
-    #        seller.username AS seller_name, 
-    #        buyer.username AS buyer_name
-    # FROM orders
-    # LEFT JOIN users AS seller ON orders.seller_id = user_id
-    # LEFT JOIN users AS buyer ON orders.user_id = user_id
-    # """)
+    if price_min is not None:
+        query += ' AND price >= ?'
+        params.append(price_min)
 
+    if price_max is not None:
+        query += ' AND price <= ?'
+        params.append(price_max)
+
+    if category:
+        query += ' AND category = ?'
+        params.append(category)
+
+    if sort_order == 'asc':
+        query += ' ORDER BY price ASC'
+    elif sort_order == 'desc':
+        query += ' ORDER BY price DESC'
+
+    c.execute(query, params)
     orders = c.fetchall()
+    conn.close()
+
+    # Prepare orders with additional user information
     orders_temp = []
     for order in orders:
         order_temp = dict(order)
@@ -279,11 +302,17 @@ def show_all_orders():
         order_temp['buyer_name'] = get_username(order['user_id'])
         orders_temp.append(order_temp)
 
-    conn.close()
-    return render_template('show_all_orders.html', orders=orders_temp)
+    categories = get_categories()
+
+    return render_template('show_all_orders.html', orders=orders_temp, user_id=session['user_id'], username=get_username(session['user_id']), balance=get_user_balance(session['user_id']), search_query=search_query, categories=categories, price_min=price_min, price_max=price_max, sort_order=sort_order, category=category)
 
 @app.route('/show_all_orders_rerender')
 def show_all_orders_rerender():
+    session.pop('search_query', None)
+    session.pop('price_min', None)
+    session.pop('price_max', None)
+    session.pop('sort_order', None)
+    session.pop('category', None)
     return redirect(url_for('show_all_orders'))
 
 def deb_print(obj):
@@ -392,9 +421,14 @@ def edit_item(item_id):
         quantity = int(request.form['quantity'])
         description = request.form['description']
         image = request.form['image']
+        category = request.form['category']
+        new_category = request.form['new_category']
 
-        c.execute('UPDATE items SET name = ?, price = ?, quantity = ?, description = ?, image = ? WHERE rowid = ? AND user_id = ?',
-                    (name, price, quantity, description, image, item_id, session['user_id']))
+        if new_category:
+            category = new_category
+
+        c.execute('UPDATE items SET name = ?, price = ?, quantity = ?, description = ?, image = ? , category = ? WHERE rowid = ? AND user_id = ?',
+                    (name, price, quantity, description, image, category , item_id, session['user_id']))
         conn.commit()
         conn.close()
         
@@ -409,7 +443,7 @@ def edit_item(item_id):
     if item is None:
         return 'Item not found or you do not have permission to edit this item.'
 
-    return render_template('edit_item.html', item=item)
+    return render_template('edit_item.html', item=item , user_id=session['user_id'], username=get_username(session['user_id']), balance=get_user_balance(session['user_id']) , categories=get_categories())
 
 
 def get_user_balance(user_id):
