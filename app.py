@@ -61,6 +61,15 @@ def get_email(user_id):
     except:
         return 'NaN'
 
+def price_graph(orders):
+    timestamps = []
+    prices = []
+    for order in orders:
+        timestamps.append(order['timestamp'])
+        prices.append(order['price'])
+    fig = px.line(x=timestamps, y=prices, labels={'x': 'Timestamp', 'y': 'Price'})
+    return fig.to_html(full_html=False)
+
 @app.route('/get_historical_price_for_item/<int:item_id>')
 def get_historical_price_for_item(item_id):
     conn = get_db_connection()
@@ -68,7 +77,8 @@ def get_historical_price_for_item(item_id):
     c.execute('SELECT * FROM orders WHERE item_id = ? ORDER BY timestamp DESC', (item_id,))
     prices = c.fetchall()
     conn.close()
-    return render_template('historical_prices.html', prices=prices)
+    fig = price_graph(prices)
+    return render_template('historical_prices.html', prices=prices , graph=fig , item= prices[0] ,  user_id=session['user_id'] , username=get_username(session['user_id']) , balance=get_user_balance(session['user_id']) )
 
 @app.route('/buy_item/<int:item_id>', methods=['POST'])
 def buy_item(item_id):
