@@ -118,6 +118,53 @@
             background-color: #0056b3;
         }
 
+        .item_top {
+            display: flex;
+            width: 95%;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .item_top img {
+            max-width: 175px;
+            /* Adjust the width as needed */
+            max-height: 175px;
+            /* Adjust the height as needed */
+            margin-right: 20px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .item_top div {
+            flex: 1;
+        }
+
+        .item_top p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .item_top a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .item_top a:hover {
+            background-color: #0056b3;
+        }
+
         /* Adding a scrollbar style (optional) */
         .scrollable-container::-webkit-scrollbar {
             width: 10px;
@@ -183,35 +230,71 @@
         .reset-button:hover {
             background-color: #c82333;
         }
+
+        .top-1 {
+            border-color: gold !important;
+        }
+
+        .top-2 {
+            border-color: silver !important;
+        }
+
+        .top-3 {
+            border-color: #cd7f32 !important;
+        }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.item_top');
+            if (items.length > 0) items[0].classList.add('top-1');
+            if (items.length > 1) items[1].classList.add('top-2');
+            if (items.length > 2) items[2].classList.add('top-3');
+        });
+    </script>
 </head>
 
 <body>
     {% if username == 'NaN' %}
+    <div class="navbar">
+        <div class="container">
+            <a href="{{ url_for('register') }}">Register</a>
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('list_items') }}">View Items</a>
 
-    <div>
-        <h1>Welcome to the Marketplace</h1>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque rerum quia distinctio! Magnam dolore possimus
-            ab enim, accusantium similique voluptate magni reprehenderit voluptatum quia? Voluptate repellat hic ab
-            similique consectetur.</p>
-        <div>
-            <div>
-                <h3>Electronics</h3>
-                <img src="{{ url_for('static', filename='img.jpg') }}" alt="item1">
-            </div>
-            <div>
-                <h3>Toys</h3>
-                <img src="{{ url_for('static', filename='img2.jpg') }}" alt="item1">
-            </div>
-            <div>
-                <h3>Sneakers</h3>
-                <img src="{{ url_for('static', filename='img3.jpg') }}" alt="item1">
+            <div class="profile">
+                <a class='link' href="{{ url_for('profile', user_id=user_id) }}">
+                    <h2><i class="fa-solid fa-user"></i> User {{ username }}</h2>
+                </a>
+                <a class='link' href="{{ url_for('balance', user_id=user_id) }}">
+                    <p><i class="fa-solid fa-money-bill"></i> Balance Amount {{ balance }} $</p>
+                </a>
             </div>
         </div>
-        <h2 href="{{ url_for('list_items') }}">Explore Items</h2>
     </div>
-    <a href="{{ url_for('register') }}">Register</a>
-    <a href="{{ url_for('login') }}">Login</a>
+    <div>
+        <div>
+            <h1>Welcome to Our Marketplace</h1>
+            <p>We're thrilled to have you here. Discover unique products, connect with sellers, and enjoy a seamless shopping experience. Whether buying or selling, our community is designed to meet your needs. Our support team is always available to assist you.</p>
+            <h2>Happy shopping and selling!</h2>
+        </div>
+        <h2>Top selling items</h2>
+        <div class="scrollable-container">
+            {% for item in top_selling_items %}
+            <div class="item_top" id="item_top-{{ loop.index }}">
+                <img src="{{ item['image'] }}" alt="{{ item['name'] }}">
+                <div>
+                    <p>Name : {{ item['name'] }}</p>
+                    <p>Category : {{ item['category'] }}</p>
+                    <p>Description : {{ item['description'] }}</p>
+                    <p>Price : ${{ item['price'] }}</p>
+                    <p>Sold : {{ item['total_quantity'] }} pieces</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
 
     {% endif %}
     {% if session.user_id %}

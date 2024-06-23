@@ -23,6 +23,14 @@ def debag(query):
     print(query , " : Query")
     print(items)
 
+def top_selling_items():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT item_id, name, category, description, price, image, SUM(quantity) as total_quantity FROM orders GROUP BY item_id')
+    top_items = c.fetchall()
+    conn.close()
+    print(top_items[0].keys())
+    return sorted(top_items, key=lambda x: x['total_quantity'], reverse=True)
 
 @app.route('/')
 def index():
@@ -37,7 +45,7 @@ def index():
         username = get_username(session['user_id'])
         items = get_user_items(session['user_id'])
         offers = get_user_offers(session['user_id'])
-    return render_template('index.html', balance=balance , username=username , items=items , offers=offers , user_id=user_id)
+    return render_template('index.html', balance=balance , username=username , items=items , offers=offers , user_id=user_id , top_selling_items = top_selling_items())
 
 def get_username(user_id):
     try:
@@ -72,6 +80,10 @@ def price_graph(orders):
 
 @app.route('/get_historical_price_for_item/<int:item_id>')
 def get_historical_price_for_item(item_id):
+
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+
     conn = get_db_connection()
     c = conn.cursor()
     c.execute('SELECT * FROM orders WHERE item_id = ? ORDER BY timestamp DESC', (item_id,))
@@ -83,7 +95,7 @@ def get_historical_price_for_item(item_id):
 @app.route('/buy_item/<int:item_id>', methods=['POST'])
 def buy_item(item_id):
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('index'))
 
     conn = get_db_connection()
     c = conn.cursor()
@@ -169,7 +181,7 @@ def logout():
 @app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('index'))
 
     categories = get_categories()
 
@@ -210,6 +222,10 @@ def update_user_profile(user_id, new_username, new_password, new_email):
 
 @app.route('/profile/<int:user_id>', methods=['GET', 'POST'])
 def profile(user_id):
+
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+
     username = get_username(user_id)
     email = get_email(user_id)  # Assuming you have a function to retrieve the user's email
     if request.method == 'POST':
@@ -259,7 +275,7 @@ def get_spending(user_id):
 @app.route('/balance/<int:user_id>')
 def balance(user_id):
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('index'))
     if not user_id:
         return "User ID is required"
     orders, total_spending, graph , pie_graph = get_spending(user_id)
@@ -267,6 +283,10 @@ def balance(user_id):
 
 @app.route('/show_all_orders', methods=['GET'])
 def show_all_orders():
+
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+
     search_query = request.args.get('search_query', '')
     price_min = request.args.get('price_min', type=float)
     price_max = request.args.get('price_max', type=float)
@@ -358,18 +378,11 @@ def get_categories():
     conn.close()
     return set([category['category'] for category in categories])
 
-def top_selling_items():
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute('SELECT item_id, SUM(quantity) as total_quantity FROM orders GROUP BY item_id')
-    top_items = c.fetchall()
-    conn.close()
-    return sorted(top_items, key=lambda x: x['total_quantity'], reverse=True)
+
 
 @app.route('/list_items')
 def list_items():
-
-    deb_print(session)
+    # deb_print(session)
 
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -420,7 +433,7 @@ def list_items():
 @app.route('/edit_item/<int:item_id>', methods=['GET', 'POST'])
 def edit_item(item_id):
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('index'))
 
     conn = get_db_connection()
     c = conn.cursor()
@@ -521,6 +534,7 @@ def search_offers():
         items = get_user_items(session['user_id'])
     else:
         flash('Please log in to search offers.')
+        return redirect(url_for('index'))
 
     return render_template('index.html', balance=balance, username=username, items=items, offers=offers , user_id=session['user_id'])
 
@@ -551,6 +565,9 @@ def search_bought_items():
             items = get_user_items(user_id)
 
         offers = get_user_offers(user_id)
+    else:
+        flash('Please log in to search bought items.')
+        return redirect(url_for('index'))
 
     return render_template('index.html', balance=balance, username=username, items=items, offers=offers, user_id=user_id)
 
